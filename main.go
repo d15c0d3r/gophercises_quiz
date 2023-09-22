@@ -43,17 +43,22 @@ func main() {
 	problems := parseLines(lines)
 
 	correct := 0
+	ansChan := make(chan string)
 	timer := time.NewTimer(time.Duration(*timeLimit) * time.Second)
+	defer func() { close(ansChan) }()
 	for i, p := range problems {
+		fmt.Printf("Problem #%d: %s = \n", i+1, p.q)
+		go func() {
+			var ans string
+			fmt.Scanf("%s\n", &ans)
+			ansChan <- ans
+		}()
 		select {
 		case <-timer.C:
 			fmt.Printf("You scored %d out of %d\n", correct, len(problems))
 			return
-		default:
-			fmt.Printf("Problem #%d: %s = \n", i+1, p.q)
-			var ans string
-			fmt.Scanf("%s\n", &ans)
-			if ans == p.a {
+		case a := <-ansChan:
+			if a == p.a {
 				correct++
 			}
 		}
